@@ -1,0 +1,48 @@
+/**
+ * Google Apps Script to receive POST requests from the JS frontend and save data to a Google Sheet.
+ * Deploy this script as a web app with "Anyone, even anonymous" access.
+ */
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Sheet1"); // Change to your sheet name
+
+    var data = JSON.parse(e.postData.contents);
+
+    // If file data is present, save the file to Drive folder
+    if (data.fileData && data.fileName && data.fileType) {
+      var folderId = "1XIdIFDCfZz5jZ0bIRNuF9lJRGT3wlGEi"; // Target Drive folder ID
+      var folder = DriveApp.getFolderById(folderId);
+
+      var contentType = data.fileType;
+      var decoded = Utilities.base64Decode(data.fileData);
+      var blob = Utilities.newBlob(decoded, contentType, data.fileName);
+
+      try {
+        folder.createFile(blob);
+      } catch (fileError) {
+        return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "Failed to save file: " + fileError.message }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // Append a new row with the data fields
+    sheet.appendRow([
+      data.id,
+      data.tanggal_posting,
+      data.judul,
+      data.script,
+      data.caption,
+      data.link_referensi,
+      data.format,
+      new Date() // Timestamp of submission
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ result: "success", data: data }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ result: "error", message: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}

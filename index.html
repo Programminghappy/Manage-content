@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manajemen Konten</title>
+    <link rel="stylesheet" href="Style.css" />
+    <style>
+        /* Gaya dasar */
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            /* Meningkatkan keterbacaan */
+        }
+
+        /* Form Container */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            /* Pusatkan dan beri margin bawah */
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            position: absolute;
+            top: 0;
+            left: 10px;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background-color: white;
+            padding: 0 5px;
+            font-size: 0.8em;
+            color: #777;
+        }
+
+        .form-group input:focus+label,
+        .form-group textarea:focus+label,
+        .form-group input:valid+label,
+        .form-group textarea:valid+label {
+            top: -10px;
+            font-size: 0.7em;
+            color: #333;
+        }
+
+        /* Input Fields */
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        input[type="datetime-local"] {
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        textarea.shadow {
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        textarea.clean {
+            border: 1px solid #ccc;
+        }
+
+        /* Select Dropdown */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 16px;
+            padding-right: 30px;
+        }
+
+        /* Buttons */
+        button[type="submit"],
+        .delete-button,
+        .restore-button {
+            background-color: #003366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        .delete-button {
+            background-color: #cc0000;
+        }
+
+        .restore-button {
+            background-color: #4caf50;
+        }
+
+        /* Content List */
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .content-section h2 {
+            margin-bottom: 10px;
+        }
+
+        .content-card {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .content-card h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .content-card p {
+            margin-bottom: 5px;
+        }
+
+        .content-card .status {
+            font-weight: bold;
+        }
+
+        .content-card .posted {
+            color: green;
+        }
+
+        .content-card .pending {
+            color: orange;
+        }
+
+        .content-card .post-checkbox {
+            margin-bottom: 10px;
+        }
+
+        /* Trash List */
+        #trash-list {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+
+        #trash-list h2 {
+            margin-bottom: 15px;
+        }
+
+        .trashed {
+            display: none;
+        }
+
+        .trashed.in-trash {
+            display: block;
+        }
+
+        /* Popup */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .popup button {
+            margin-top: 10px;
+        }
+
+        /* Belum Selesai & Selesai Sections */
+        .belum-selesai,
+        .selesai {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .belum-selesai h2,
+        .selesai h2 {
+            margin-bottom: 10px;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (min-width: 768px) {
+            .content-list {
+                flex-direction: row;
+                /* Mengubah ke baris horizontal pada layar yang lebih besar */
+                flex-wrap: wrap;
+                /* Memungkinkan card untuk wrap ke baris baru */
+                justify-content: flex-start;
+                /* Mengatur posisi card */
+            }
+
+            .content-card {
+                width: calc(50% - 10px);
+                /* Dua card per baris, dengan sedikit jarak */
+            }
+        }
+
+        @media (min-width: 992px) {
+            .content-card {
+                width: calc(33.333% - 10px);
+                /* Tiga card per baris pada layar yang lebih besar */
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                margin: 10px;
+                /* Kurangi margin pada layar kecil */
+            }
+
+            .form-container {
+                padding: 10px;
+                /* Tambahkan padding pada form container */
+            }
+
+            .content-card {
+                width: 100%;
+                /* Satu card per baris pada layar kecil */
+            }
+
+            button[type="submit"],
+            .delete-button,
+            .restore-button {
+                width: 100%;
+                /* Lebar tombol penuh pada layar kecil */
+                box-sizing: border-box;
+                /* Pastikan padding tidak merusak lebar */
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css" />
+</head>
+
+<body>
+    <section class="form-container">
+        <h2>Tambah Konten Baru</h2>
+<form id="content-form">
+            <div class="form-group">
+                <input type="datetime-local" id="tanggal_posting" name="tanggal_posting" required aria-label="Tanggal & Waktu Posting" />
+                <label for="tanggal_posting">Tanggal & Waktu Posting</label>
+            </div>
+
+            <div class="form-group">
+                <input type="text" id="judul" name="judul" placeholder="Masukkan judul konten" required aria-label="Judul" />
+                <label for="judul">Judul</label>
+            </div>
+
+            <div class="form-group">
+                <textarea id="script" name="script" rows="4" class="shadow" required aria-label="Script"></textarea>
+                <label for="script">Script</label>
+            </div>
+
+            <div class="form-group">
+                <textarea id="caption" name="caption" rows="4" class="clean" required aria-label="Caption"></textarea>
+                <label for="caption">Caption</label>
+            </div>
+
+            <div class="form-group">
+                <textarea id="link_referensi" name="link_referensi" rows="1" class="link" required aria-label="Link Referensi"></textarea>
+                <label for="link_referensi">Link Referensi</label>
+            </div>
+
+            <div class="form-group">
+                <select id="format" name="format" required aria-label="Format">
+                    <option value="">Pilih Format</option>
+                    <option value="foto">Foto</option>
+                    <option value="video">Video</option>
+                </select>
+                <label for="format">Format</label>
+            </div>
+
+            <div class="form-group">
+                <input type="file" id="file_upload" name="file_upload" aria-label="Upload File" />
+                <label for="file_upload">Upload File</label>
+            </div>
+
+            <button type="submit">Simpan Konten</button>
+        </form>
+    </section>
+
+    <section class="content-list">
+        <h2>Daftar Konten</h2>
+        <div class="belum-selesai">
+            <h2>Belum Selesai</h2>
+            <!-- Konten yang belum selesai akan ditambahkan di sini -->
+        </div>
+
+        <div class="selesai">
+            <h2>Selesai</h2>
+            <!-- Konten yang selesai akan ditambahkan di sini -->
+        </div>
+    </section>
+
+    <section id="trash-list">
+        <h2>Sampah</h2>
+        <!-- Konten yang dihapus akan muncul di sini -->
+    </section>
+
+    <!-- Popup Konfirmasi -->
+    <div id="success-popup" class="popup">
+        <p>Konten berhasil disimpan!</p>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX4iIqUDN4sLExIQjim6vHggKQjishuptMpnjr6J6edcysNEc1KWGqBKT933aM6bRu/exec";
+  
+  document.getElementById("content-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const data = {
+      id: Date.now(),
+      tanggal_posting: document.getElementById("tanggal_posting").value,
+      judul: document.getElementById("judul").value,
+      script: document.getElementById("script").value,
+      caption: document.getElementById("caption").value,
+      link_referensi: document.getElementById("link_referensi").value,
+      format: document.getElementById("format").value
+    };
+
+    const fileInput = document.getElementById("file_upload");
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const base64 = await toBase64(file);
+      data.fileName = file.name;
+      data.fileType = file.type;
+      data.fileData = base64.split(",")[1]; // Remove the data URL prefix
+    }
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Fetch error response:", errorText);
+        Swal.fire("Gagal!", "Server error: " + errorText, "error");
+        return;
+      }
+
+      const result = await response.json();
+      if (result.result === "success") {
+        Swal.fire("Berhasil!", "Konten telah disimpan.", "success");
+        document.getElementById("content-form").reset();
+      } else {
+        Swal.fire("Gagal!", result.message, "error");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      Swal.fire("Gagal!", error.message, "error");
+    }
+  });
+
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+</script>
+    <script src="script.js"></script>
+</body>
+
+</html>
